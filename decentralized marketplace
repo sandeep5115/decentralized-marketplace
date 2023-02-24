@@ -1,0 +1,61 @@
+//decentralized marketplace in a game to share the game asserts with a player by the approval of in game players
+using System;
+using System.Collections.Generic;
+
+class Marketplace {
+    Dictionary<string, int> balances;
+    List<string> players;
+    Dictionary<string, bool> approved;
+
+    public Marketplace(string[] playerAddresses) {
+        balances = new Dictionary<string, int>();
+        foreach (string addr in playerAddresses) {
+            balances[addr] = 0;
+        }
+        players = new List<string>(playerAddresses);
+        approved = new Dictionary<string, bool>();
+        foreach (string addr in playerAddresses) {
+            approved[addr] = false;
+        }
+    }
+
+    public void Deposit(string sender, int amount) {
+        balances[sender] += amount;
+    }
+
+    public int Withdraw(string sender, int amount) {
+        if (balances[sender] < amount) {
+            throw new Exception("Insufficient balance");
+        }
+        balances[sender] -= amount;
+        return amount;
+    }
+
+    public void Approve(string sender, string recipient) {
+        if (!players.Contains(sender)) {
+            throw new Exception("Only players can approve");
+        }
+        approved[recipient] = true;
+    }
+
+    public void Transfer(string sender, string recipient, int amount) {
+        if (balances[sender] < amount) {
+            throw new Exception("Insufficient balance");
+        }
+        if (!approved[recipient]) {
+            throw new Exception("Recipient not approved");
+        }
+        if (sender == recipient) {
+            throw new Exception("Cannot transfer to self");
+        }
+
+        balances[sender] -= amount;
+        balances[recipient] += amount;
+
+        foreach (string player in players) {
+            if (player != sender && player != recipient) {
+                approved[player] = false;
+            }
+        }
+    }
+}
